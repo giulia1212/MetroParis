@@ -1,0 +1,25 @@
+from model.fermata import Fermata
+from model.model import Model
+
+model=Model()
+print("Numero nodi:", model.get_numnodi())
+print("Numero archi:", model.get_numarchi())
+model.buildGraph()
+print("Numero nodi:", model.get_numnodi())
+print("Numero archi:", model.get_numarchi())
+
+# source è un oggetto di tipo fermata
+# lo copio da DBeaver per comodità
+source = Fermata(2,	"Abbesses", 2.33855, 48.8843)
+
+nodiBFS = model.getBFSNodesFromEdges(source)
+print("Esplorazione Breadth-First")
+print(len(nodiBFS))
+for i in range(0, 10):
+    print(nodiBFS[i])
+
+nodiDFS = model.getDFSNodesFromEdges(source)
+print("Esplorazione Depth First ")
+print(len(nodiDFS))
+for i in range(0, 10):
+    print(nodiDFS[i])
