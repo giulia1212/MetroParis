@@ -2,6 +2,15 @@ from datetime import datetime
 
 from database.DAO import DAO
 import networkx as nx
+import geopy.distance
+
+# è scritto fuori dalla classe, non ha senso che sia dentro
+# geopy è una libreria che ti aiuta a trovare la distanza tra due punti in una sfera, perchè la terra non è piatta
+def getPesoTempoPercorrenza(u, v, vel):
+    # tempo di quanti ci metto ad andare da una fermata ad un'altra
+    dist = geopy.distance.distance((u.coordX, u.coordY), (v.coordX, v.coordY)).km
+    time = dist/vel *60  # minuti, poichè distanza in km e velocità in km/h
+    return time
 
 class Model:
     def __init__(self):
@@ -11,12 +20,27 @@ class Model:
         for f in self._fermate:             # dato id fermata ritorno l'oggetto fermata corrispondente
             self._idMapFermate[f.id_fermata] = f
 
+    def getShortestPath(self, u, v):
+        # metodo che serve solo per chiamare dijkstra
+        return nx.single_source_dijkstra(self._grafo, u, v)
 
     def buildGraphPesato(self):
         self._grafo.clear()
         self._grafo.add_nodes_from(self._fermate)
-        self.addEdgesPesati()
+        # self.addEdgesPesati()
+        self.addEdgesPesatiTempi()
 
+    def addEdgesPesatiTempi(self):
+        """Crea degli archi in cui il peso è pari al tempo di percorrenza de quell'arco,
+        ottenuto come rapporto tra la distanza tra due stazioni e la velocità di percorrenza."""
+        self._grafo.clear_edges()
+        #leggo gli orchi dal DAO
+        allEdgesVel = DAO.getAllEdgesVelocita()
+        for e in allEdgesVel:
+            u = self._idMapFermate[e[0]]
+            v = self._idMapFermate[e[1]]
+            peso = getPesoTempoPercorrenza(u, v, e[2])
+            self._grafo.add_edge(u, v, weight=peso)
 
     def addEdgesPesati(self):
         # riutilizzare il principio di funzionamento del metodo addEdges3
